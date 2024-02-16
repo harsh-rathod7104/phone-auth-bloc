@@ -4,9 +4,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:phone_auth_bloc/cubit/auth_cubit/auth_cubit.dart';
-import 'package:phone_auth_bloc/cubit/auth_cubit/auth_state.dart';
-import 'package:phone_auth_bloc/screens/home_screen.dart';
-import 'package:phone_auth_bloc/screens/phone_auth.dart';
+import 'package:phone_auth_bloc/cubit/auth_cubit/otp_cubit.dart';
+
+import 'package:phone_auth_bloc/screens/signin_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,24 +27,15 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => AuthCubit(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => AuthCubit()),
+        BlocProvider(create: (_) => OtpCubit()),
+      ],
       child: MaterialApp(
-          theme: ThemeData(useMaterial3: false),
-          home: BlocBuilder<AuthCubit, AuthState>(
-            buildWhen: (previous, current) {
-              return previous is AuthInitialState;
-            },
-            builder: (BuildContext context, state) {
-              if (state is AuthLoggedInState) {
-                return HomeScreen();
-              } else if (state is AuthLoggedOutState) {
-                return PhoneAuth();
-              } else {
-                return Scaffold();
-              }
-            },
-          )),
+        theme: ThemeData(useMaterial3: false),
+        home: SignInScreen(),
+      ),
     );
   }
 }

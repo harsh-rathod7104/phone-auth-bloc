@@ -4,15 +4,8 @@ import 'package:phone_auth_bloc/cubit/auth_cubit/auth_state.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  AuthCubit() : super(AuthInitialState()) {
-    User? currentUser = _auth.currentUser;
-    if (currentUser != null) {
-      //logged in
-      emit(AuthLoggedInState(currentUser));
-    } else {
-      emit(AuthLoggedOutState());
-    }
-  }
+  AuthCubit() : super(AuthIntialState());
+
   String? _verificationId;
 
   void sendOtp(String phoneNumber) async {
@@ -27,7 +20,7 @@ class AuthCubit extends Cubit<AuthState> {
       },
       codeSent: (verificationId, forceResendingToken) {
         _verificationId = verificationId;
-        emit(AuthCodeSentState());
+        emit(AuthCodeSendState());
       },
       codeAutoRetrievalTimeout: (verificationId) {
         _verificationId = verificationId;
@@ -35,7 +28,7 @@ class AuthCubit extends Cubit<AuthState> {
     );
   }
 
-  void verifyOtp(String otp) {
+  void verifyOtp(String otp) async {
     emit(AuthLoadingState());
     PhoneAuthCredential credential = PhoneAuthProvider.credential(
         verificationId: _verificationId!, smsCode: otp);
@@ -46,17 +39,11 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       UserCredential userCredential =
           await _auth.signInWithCredential(credential);
-
       if (userCredential.user != null) {
         emit(AuthLoggedInState(userCredential.user!));
       }
     } on FirebaseAuthException catch (ex) {
       emit(AuthErrorState(ex.message.toString()));
     }
-  }
-
-  void logOut() async {
-    _auth.signOut();
-    emit(AuthLoggedOutState());
   }
 }
